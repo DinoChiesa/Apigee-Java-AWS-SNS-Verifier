@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ProxyEndpoint name="endpoint1">
+  <Description>Default Proxy</Description>
+
+  <HTTPProxyConnection>
+    <BasePath>/aws-sns-verifier</BasePath>
+    <Properties/>
+    <VirtualHost>secure</VirtualHost>
+  </HTTPProxyConnection>
+
+  <FaultRules/>
+  <DefaultFaultRule name="default-fault-rule">
+    <Step>
+      <Name>AM-InjectProxyRevisionHeader</Name>
+    </Step>
+    <AlwaysEnforce>true</AlwaysEnforce>
+  </DefaultFaultRule>
+
+  <PreFlow>
+    <Request>
+    </Request>
+    <Response>
+      <Step>
+        <Name>AM-InjectProxyRevisionHeader</Name>
+      </Step>
+    </Response>
+  </PreFlow>
+
+  <Flows>
+    <Flow name="verify">
+      <Description>verify the inbound message</Description>
+      <Request>
+        <Step>
+          <Name>Java-AWS-SNS-Verify</Name>
+        </Step>
+      </Request>
+      <Response>
+        <Step>
+          <Name>AM-SuccessEncryptResponse</Name>
+        </Step>
+      </Response>
+      <Condition>(proxy.pathsuffix MatchesPath "/verify") and (request.verb = "POST")</Condition>
+    </Flow>
+
+    <Flow name='unknown'>
+      <Description>unknown request</Description>
+      <Request>
+        <Step>
+          <Name>RF-UnknownRequest</Name>
+        </Step>
+      </Request>
+    </Flow>
+  </Flows>
+
+  <RouteRule name="Loopback"/>
+
+</ProxyEndpoint>

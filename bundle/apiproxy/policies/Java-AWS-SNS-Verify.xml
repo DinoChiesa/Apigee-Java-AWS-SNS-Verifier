@@ -1,0 +1,8 @@
+<JavaCallout name="Java-AWS-SNS-Verify">
+  <Properties>
+    <Property name='max-lifetime'>60s</Property>
+    <Property name='debug'>true</Property>
+  </Properties>
+  <ClassName>com.google.apigee.callouts.AwsSnsSignatureVerifier</ClassName>
+  <ResourceURL>java://apigee-callout-aws-sns-sig-verifier-202100601.jar</ResourceURL>
+</JavaCallout>

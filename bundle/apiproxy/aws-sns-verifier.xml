@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<APIProxy revision="1" name="aws-sns-verifier">
+    <ConfigurationVersion minorVersion="0" majorVersion="4"/>
+    <CreatedAt>1358216854854</CreatedAt>
+    <CreatedBy>orgAdmin</CreatedBy>
+    <Description>An example API Proxy that demonstrates how to Verify signatures on AWS SNS messages</Description>
+    <DisplayName>aws-sns-verifier</DisplayName>
+    <LastModifiedAt>1463848403570</LastModifiedAt>
+    <LastModifiedBy>orgAdmin</LastModifiedBy>
+    <TargetEndpoints/>
+</APIProxy>

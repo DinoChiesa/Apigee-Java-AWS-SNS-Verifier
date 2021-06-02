@@ -1,0 +1,11 @@
+<AssignMessage name='AM-SuccessVerifyResponse'>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <Set>
+    <Payload contentType='application/json'>{
+  "status": "ok"
+}
+</Payload>
+    <StatusCode>200</StatusCode>
+    <ReasonPhrase>OK</ReasonPhrase>
+  </Set>
+</AssignMessage>
