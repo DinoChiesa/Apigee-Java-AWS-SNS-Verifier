@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ProxyEndpoint name="endpoint1">
-  <Description>Default Proxy</Description>
+  <Description>Endpoint1 for SNS verification</Description>
 
   <HTTPProxyConnection>
     <BasePath>/aws-sns-verifier</BasePath>
@@ -36,7 +36,7 @@
       </Request>
       <Response>
         <Step>
-          <Name>AM-SuccessEncryptResponse</Name>
+          <Name>AM-SuccessVerifyResponse</Name>
         </Step>
       </Response>
       <Condition>(proxy.pathsuffix MatchesPath "/verify") and (request.verb = "POST")</Condition>

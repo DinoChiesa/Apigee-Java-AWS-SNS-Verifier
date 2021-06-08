@@ -37,7 +37,7 @@ There is one option, `max-lifetime`, which you can use to set the message expiry
       <Property name='max-lifetime'>60s</Property>
     </Properties>
     <ClassName>com.google.apigee.callouts.AwsSnsSignatureVerifier</ClassName>
-    <ResourceURL>java://apigee-callout-aws-sns-sig-verifier-202100601.jar</ResourceURL>
+    <ResourceURL>java://apigee-callout-aws-sns-sig-verifier-202100608.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -75,7 +75,7 @@ To build: `mvn clean package`
 
 The Jar source code includes tests.
 
-If you edit policies offline, copy [the jar file for the custom policy](callout/target/apigee-callout-aws-sns-sig-verifier-202100601.jar)  to your apiproxy/resources/java directory.  If you don't edit proxy bundles offline, upload that jar file into the API Proxy via the Apigee API Proxy Editor .
+If you edit policies offline, copy [the jar file for the custom policy](callout/target/apigee-callout-aws-sns-sig-verifier-202100608.jar)  to your apiproxy/resources/java directory.  If you don't edit proxy bundles offline, upload that jar file into the API Proxy via the Apigee API Proxy Editor .
 
 
 ## Build Dependencies
@@ -83,6 +83,7 @@ If you edit policies offline, copy [the jar file for the custom policy](callout/
 * Apigee expressions v1.0
 * Apigee message-flow v1.0
 * Bouncy Castle 1.64
+* Ben Manes' Caffeine 2.9.1
 
 These jars are specified in the pom.xml file.
 

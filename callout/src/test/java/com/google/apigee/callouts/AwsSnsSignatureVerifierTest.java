@@ -1,4 +1,4 @@
-// TestAwsSnsSignatureVerifier.java
+// AwsSnsSignatureVerifierTest.java
 //
 // Test code for the AWS SNS Signature Verifier custom policy for Apigee. Uses TestNG.
 // For full details see the Readme accompanying this source file.
@@ -33,7 +33,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public class TestAwsSnsSignatureVerifier {
+public class AwsSnsSignatureVerifierTest {
 
   static {
     java.security.Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
@@ -99,4 +99,38 @@ public class TestAwsSnsSignatureVerifier {
     System.out.println("error : " + error);
   }
 
+  // no test available
+
+  // @Test()
+  // public void basic() {
+  //   Properties props = new Properties();
+  //   // props.setProperty("debug", "true");
+  //   props.setProperty("debug", "true");
+  //   // props.setProperty("source", "source"); // no source!
+  //   props.setProperty("request-verb", "GET");
+  //   props.setProperty("request-path", "/test.txt");
+  //   props.setProperty("request-date", "20130524T000000Z");
+  //   props.setProperty("request-expiry", "86400");
+  //   props.setProperty("output", "my_output");
+  //
+  //   props.setProperty("key", "AKIAIOSFODNN7EXAMPLE");
+  //   props.setProperty("secret", "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY");
+  //   props.setProperty("region", "us-east-1");
+  //   props.setProperty("service", "s3");
+  //   props.setProperty("endpoint", "https://examplebucket.s3.amazonaws.com");
+  //
+  //   AwsSnsSignatureVerifier callout = new AwsSnsSignatureVerifier(props);
+  //
+  //   // execute and retrieve output
+  //   ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
+  //   ExecutionResult expectedResult = ExecutionResult.SUCCESS;
+  //
+  //   // check result and output
+  //   Assert.assertEquals(actualResult, expectedResult, testName + " result not as expected");
+  //   Assert.assertNull(msgCtxt.getVariable("awsv4sig_error"), testName);
+  //   Assert.assertEquals(msgCtxt.getVariable("awsv4sig_creq"), creq, testName);
+  //   Assert.assertEquals(stsXformed(), sts, testName);
+  //   Assert.assertEquals(msgCtxt.getVariable("my_output"), constructedUrl, testName);
+  //
+  // }
 }

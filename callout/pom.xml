@@ -4,7 +4,7 @@
 
   <groupId>com.google.apigee</groupId>
   <artifactId>apigee-callout-aws-sns-sig-verifier</artifactId>
-  <version>202100601</version>
+  <version>202100608</version>
   <name>ApigeeCustomAwsSnsSignatureVerifier</name>
   <url>http://maven.apache.org</url>
   <packaging>jar</packaging>
@@ -66,6 +66,12 @@
       <artifactId>jmockit</artifactId>
       <version>${jmockit.version}</version>
       <scope>test</scope>
+    </dependency>
+
+      <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
+      <version>2.9.1</version>
     </dependency>
 
   </dependencies>
@@ -139,6 +145,8 @@
                     <include name="lib/*.jar"/>
                     <exclude name="lib/bcprov-jdk15on-*.*.jar"/>
                     <exclude name="lib/bcpkix-jdk15on-*.*.jar"/>
+                    <exclude name="lib/checker-qual-*.*.*.jar"/>
+                    <exclude name="lib/error_prone_annotations-*.*.*.jar"/>
                     <exclude name="lib/message-flow-1.0.0.jar"/>
                     <exclude name="lib/expressions-1.0.0.jar"/>
                   </fileset>

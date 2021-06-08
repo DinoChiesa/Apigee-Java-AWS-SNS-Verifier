@@ -27,6 +27,8 @@ import com.apigee.flow.execution.ExecutionResult;
 import com.apigee.flow.execution.IOIntensive;
 import com.apigee.flow.execution.spi.Execution;
 import com.apigee.flow.message.MessageContext;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.apigee.json.JavaxJson;
 import com.google.apigee.util.TimeResolver;
 import java.io.InputStream;
@@ -43,6 +45,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @IOIntensive
 public class AwsSnsSignatureVerifier extends AbstractCallout implements Execution {
@@ -56,12 +59,29 @@ public class AwsSnsSignatureVerifier extends AbstractCallout implements Executio
     super(properties);
   }
 
-  private static X509Certificate getCert(String certUri) throws Exception {
+  private static final Cache<String, X509Certificate> certCache =
+      Caffeine.newBuilder()
+          .maximumSize(20)
+          .expireAfterAccess(30, TimeUnit.SECONDS)
+          .executor(Runnable::run)
+          .recordStats()
+          .build();
+
+  private static X509Certificate readCertFromUri(String certUri) throws Exception {
     URL url = new URL(certUri);
     try (InputStream inStream = url.openStream()) {
       return (X509Certificate)
           CertificateFactory.getInstance("X.509").generateCertificate(inStream);
     }
+  }
+
+  private static X509Certificate getCert(String certUri) throws Exception {
+    X509Certificate cert = certCache.getIfPresent(certUri);
+    if (cert == null) {
+      cert = readCertFromUri(certUri);
+      certCache.put(certUri, cert);
+    }
+    return cert;
   }
 
   private long getMaxAllowableLifetime(MessageContext msgCtxt) throws Exception {
@@ -86,7 +106,7 @@ public class AwsSnsSignatureVerifier extends AbstractCallout implements Executio
   private static boolean isMessageSignatureValid(Map<String, String> map) {
     try {
       String certUri = map.get("SigningCertURL");
-      verifyMessageSignatureURL(certUri);
+      verifyCertificateURL(certUri);
       Signature sig = Signature.getInstance("SHA1withRSA");
       sig.initVerify(getCert(certUri).getPublicKey());
       sig.update(getMessageBytesToSign(map));
@@ -96,7 +116,7 @@ public class AwsSnsSignatureVerifier extends AbstractCallout implements Executio
     }
   }
 
-  private static void verifyMessageSignatureURL(String signingCertUri) {
+  private static void verifyCertificateURL(String signingCertUri) {
     URI certUri = URI.create(signingCertUri);
 
     if (!"https".equals(certUri.getScheme())) {
@@ -215,8 +235,8 @@ public class AwsSnsSignatureVerifier extends AbstractCallout implements Executio
       clearVariables(msgCtxt);
       debug = getDebug(msgCtxt);
 
-      String messagetype = msgCtxt.getVariable("request.header.x-amz-sns-message-type").toString();
-      if (messagetype == null) {
+      String messagetype = (String) msgCtxt.getVariable("request.header.x-amz-sns-message-type");
+      if (messagetype == null || messagetype.equals("")) {
         msgCtxt.setVariable(varName("error"), "No-SNS-Message-Found");
         return ExecutionResult.ABORT;
       }
