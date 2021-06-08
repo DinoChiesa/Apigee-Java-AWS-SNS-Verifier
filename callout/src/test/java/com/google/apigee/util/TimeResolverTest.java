@@ -37,5 +37,6 @@ public class TimeResolverTest {
     equal.accept(TimeResolver.resolveExpression("3d"), 3 * 24 * 60 * 60 * 1000L);
     equal.accept(TimeResolver.resolveExpression("5w"), 5 * 7 * 24 * 60 * 60 * 1000L);
     equal.accept(TimeResolver.resolveExpression("20"), 20 * 1000L);
+    equal.accept(TimeResolver.resolveExpression("-1"), -1L);
   }
 }

@@ -27,17 +27,12 @@ import com.apigee.flow.execution.ExecutionResult;
 import com.apigee.flow.execution.IOIntensive;
 import com.apigee.flow.execution.spi.Execution;
 import com.apigee.flow.message.MessageContext;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.apigee.json.JavaxJson;
+import com.google.apigee.util.CertCache;
 import com.google.apigee.util.TimeResolver;
-import java.io.InputStream;
 import java.net.URI;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.Signature;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -45,11 +40,10 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @IOIntensive
 public class AwsSnsSignatureVerifier extends AbstractCallout implements Execution {
-  private static final long DEFAULT_MAX_LIFETIME = -1L;
+  private static final long DEFAULT_MAX_LIFETIME_SECONDS = 60L;
 
   static {
     varprefix = "awssns_";
@@ -59,43 +53,18 @@ public class AwsSnsSignatureVerifier extends AbstractCallout implements Executio
     super(properties);
   }
 
-  private static final Cache<String, X509Certificate> certCache =
-      Caffeine.newBuilder()
-          .maximumSize(20)
-          .expireAfterAccess(30, TimeUnit.SECONDS)
-          .executor(Runnable::run)
-          .recordStats()
-          .build();
-
-  private static X509Certificate readCertFromUri(String certUri) throws Exception {
-    URL url = new URL(certUri);
-    try (InputStream inStream = url.openStream()) {
-      return (X509Certificate)
-          CertificateFactory.getInstance("X.509").generateCertificate(inStream);
-    }
-  }
-
-  private static X509Certificate getCert(String certUri) throws Exception {
-    X509Certificate cert = certCache.getIfPresent(certUri);
-    if (cert == null) {
-      cert = readCertFromUri(certUri);
-      certCache.put(certUri, cert);
-    }
-    return cert;
-  }
-
-  private long getMaxAllowableLifetime(MessageContext msgCtxt) throws Exception {
+  private long getMaxAllowableLifetimeInSeconds(MessageContext msgCtxt) throws Exception {
     String maxLifetime = (String) this.properties.get("max-lifetime");
     if (maxLifetime == null) {
-      return DEFAULT_MAX_LIFETIME;
+      return DEFAULT_MAX_LIFETIME_SECONDS;
     }
     maxLifetime = maxLifetime.trim();
     if (maxLifetime.equals("")) {
-      return DEFAULT_MAX_LIFETIME;
+      return DEFAULT_MAX_LIFETIME_SECONDS;
     }
     maxLifetime = resolveVariableReferences(maxLifetime, msgCtxt);
     if (maxLifetime == null || maxLifetime.equals("")) {
-      return DEFAULT_MAX_LIFETIME;
+      return DEFAULT_MAX_LIFETIME_SECONDS;
     }
 
     Long maxLifetimeInMilliseconds = TimeResolver.resolveExpression(maxLifetime);
@@ -108,7 +77,7 @@ public class AwsSnsSignatureVerifier extends AbstractCallout implements Executio
       String certUri = map.get("SigningCertURL");
       verifyCertificateURL(certUri);
       Signature sig = Signature.getInstance("SHA1withRSA");
-      sig.initVerify(getCert(certUri).getPublicKey());
+      sig.initVerify(CertCache.getCert(certUri).getPublicKey());
       sig.update(getMessageBytesToSign(map));
       return sig.verify(Base64.getDecoder().decode((String) map.get("Signature")));
     } catch (Exception e) {
@@ -200,7 +169,6 @@ public class AwsSnsSignatureVerifier extends AbstractCallout implements Executio
 
   private static List<String> checkRequiredFields(Map<String, String> map) {
     List<String> errorsFound = new ArrayList<String>();
-
     Arrays.asList(
             "Message",
             "MessageId",
@@ -257,8 +225,9 @@ public class AwsSnsSignatureVerifier extends AbstractCallout implements Executio
       // "https://sns.us-west-2.amazonaws.com/?Action=Unsubscribe⋐scriptionArn=arn:aws:sns:us-west-2:123456789012:MyTopic:c9135db0-26c4-47ec-8998-413945fb5a96"
       // }
 
-      String payload = msgCtxt.getVariable("request.content").toString();
-      // is it always a Map<String,String> ?
+      String payload = (String) msgCtxt.getVariable("request.content");
+
+      // what happens when it is not a Map<String,String> ? Eg, a more complex JSON object.
       Map<String, String> map = JavaxJson.fromJson(payload, Map.class);
 
       List<String> errorsFound = checkRequiredFields(map);
@@ -274,7 +243,7 @@ public class AwsSnsSignatureVerifier extends AbstractCallout implements Executio
       // shred the JSON message and set context variables for each field
       setContextVariables(map, msgCtxt);
 
-      Long maxLifetimeInSeconds = getMaxAllowableLifetime(msgCtxt);
+      Long maxLifetimeInSeconds = getMaxAllowableLifetimeInSeconds(msgCtxt);
       if (maxLifetimeInSeconds > 0) {
         Instant expiry = Instant.parse(map.get("Timestamp")).plusSeconds(maxLifetimeInSeconds);
         Instant now = Instant.now();

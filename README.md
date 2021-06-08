@@ -27,14 +27,19 @@ You can then trust the claims in the message.
 
 The policy verifies the inbound "request" object.
 
-There is one option, `max-lifetime`, which you can use to set the message expiry.
+There is one option, `max-lifetime`, which you can use to set the message
+expiry.  It defaults to 60 seconds.  The policy checks that the signed timestamp
+on the message is not more than `max-lifetime` seconds ago. This is helpful for
+avoiding replays, for keeping the window of vulnerability small.
 
-## Example: Basic Verification with 60s expiry
+You can set the max lifetime to a negative number to skip this check. This is not advised.
+
+## Example: Basic Verification with 45-second expiry
 
   ```xml
   <JavaCallout name="Java-AWS-SNS-Verify">
     <Properties>
-      <Property name='max-lifetime'>60s</Property>
+      <Property name='max-lifetime'>45s</Property>
     </Properties>
     <ClassName>com.google.apigee.callouts.AwsSnsSignatureVerifier</ClassName>
     <ResourceURL>java://apigee-callout-aws-sns-sig-verifier-202100608.jar</ResourceURL>
@@ -45,9 +50,14 @@ Here's what will happen with this policy configuration:
 
 * Check that the request is from SNS (has the well-known header)
 * Checks that the Signing Cert URL is hosted at amazonaws.com for SNS
-* Builds the string-to-sign and verifies it against the certificate provided by the Signing Cert URL
+* Retrieves the signing certificate from the URL
+* Checks that the signing certificate is valid (within validity dates)
+* Builds the string-to-sign and verifies it against the signing certificate
 * Verifies the signature against that string-to-sign
-* Checks that the timestamp is no more than 60 seconds prior.
+* Checks that the timestamp is no more than 45 seconds prior.
+
+NB: The policy does not check whether the certificate is _trusted_ via a trust store, and does not check
+the issuer DN or the subject DN agaiinst allow lists. Such checks are a possible future enhancement.
 
 
 ## Detecting Success and Errors
