@@ -3,7 +3,7 @@
 // This is the main callout class for the AWS SNS Signature Verifier custom policy for Apigee.
 // For full details see the Readme accompanying this source file.
 //
-// Copyright (c) 2021 Google LLC.
+// Copyright (c) 2021-2022 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -228,6 +228,7 @@ public class AwsSnsSignatureVerifier extends AbstractCallout implements Executio
       String payload = (String) msgCtxt.getVariable("request.content");
 
       // what happens when it is not a Map<String,String> ? Eg, a more complex JSON object.
+      @SuppressWarnings("unchecked")
       Map<String, String> map = JavaxJson.fromJson(payload, Map.class);
 
       List<String> errorsFound = checkRequiredFields(map);
